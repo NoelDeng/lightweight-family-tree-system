@@ -96,7 +96,6 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, shallowRef } from 'vue'
-import * as d3 from 'd3'
 import { useDataStore } from '../stores/data.js'
 import { useVisualizationStore } from '../stores/visualization.js'
 import { memoize, batchCacheNodes } from '../utils/performance.js'
@@ -171,169 +170,310 @@ const renderTree = () => {
     const data = dataStore.familyData
     batchCacheNodes(data)
 
+    // ============================
+    // 常量
+    // ============================
+    const VERTICAL_GAP = 140   // 世代间垂直间距
+    const SPOUSE_GAP = 100     // 配偶节点水平间距
+    const SUBTREE_GAP = 80     // 兄弟子树间水平间距
+    const ROOT_GAP = 80        // 独立根节点树间水平间距
+    const TOP_MARGIN = 60      // 顶部边距
+    const NODE_HW = 32         // 节点半宽（rect 64/2）
+
+    // ============================
+    // 1. 构建索引
+    // ============================
+    const nodeById = new Map(data.map(n => [n.id, n]))
+
     // 计算世代
-    data.forEach(node => {
-      node.generation = calculateGenerationOrDefault(node, data)
-    })
-
-    // 处理多根节点（包括孤儿节点：parent ID 在 data 中不存在的节点）
-    const existingIds = new Set(data.map(n => n.id))
-    const naturalRoots = data.filter(node => !node.fatherId && !node.motherId)
-    const orphans = data.filter(node => {
-      if (!node.fatherId && !node.motherId) return false // 已是自然根节点
-      const parentId = node.fatherId || node.motherId
-      return parentId && !existingIds.has(parentId)
-    })
-    // 将所有孤儿节点的 parent 清空，使其成为根节点
-    for (const orphan of orphans) {
-      orphan.fatherId = null
-      orphan.motherId = null
-    }
-    const allRoots = [...naturalRoots, ...orphans]
-    let stratifyData
-    if (allRoots.length > 1) {
-      const virtualRoot = { id: '__virtual_root__', name: '', fatherId: null, motherId: null, generation: 0, _virtual: true }
-      stratifyData = [virtualRoot, ...data.map(n => {
-        if (!n.fatherId && !n.motherId) return { ...n, fatherId: '__virtual_root__' }
-        return n
-      })]
-    } else {
-      stratifyData = data
-    }
-
-    const root = d3.stratify()
-      .id(d => d.id)
-      .parentId(d => d.fatherId || d.motherId || null)
-      (stratifyData)
-
-    const treeLayout = d3.tree()
-      .nodeSize([80, 140])
-
-    treeLayout(root)
-
-    // 更新节点位置：D3 y轴翻转为 root 在最下方
-    const bottomY = svgHeight.value - 80
-    root.descendants().forEach(d => {
-      const node = data.find(n => n.id === d.id)
-      if (node) {
-        node.x = d.x
-        node.y = bottomY - d.y
-      }
-    })
-
-    // 水平居中偏移（基于所有节点的包围盒）
-    const xs = data.map(n => n.x).filter(x => x != null)
-    const minX = Math.min(...xs), maxX = Math.max(...xs)
-    const treeWidth = maxX - minX
-    const centerX = svgWidth.value / 2
-    data.forEach(node => {
-      if (node.x != null) node.x = node.x - minX - treeWidth / 2 + centerX
-    })
-
-    // === 配偶分组布局（BFS 连通分量） ===
-    const SPOUSE_GAP = 100  // 配偶节点中心间距（节点宽64）
-
-    // 构建配偶关系邻接表（双向）
-    const spouseAdj = new Map()
-    for (const node of data) {
-      if (!node.spouseIds || node.spouseIds.length === 0) continue
-      if (!spouseAdj.has(node.id)) spouseAdj.set(node.id, new Set())
-      for (const sid of node.spouseIds) {
-        spouseAdj.get(node.id).add(sid)
-        if (!spouseAdj.has(sid)) spouseAdj.set(sid, new Set())
-        spouseAdj.get(sid).add(node.id)
-      }
-    }
-
-    // BFS 查找所有连通分量
-    const visited = new Set()
-    const spouseGroups = []
-
-    for (const node of data) {
-      if (visited.has(node.id)) continue
-      if (!spouseAdj.has(node.id)) continue
-
-      const group = []
-      const queue = [node.id]
+    const calcGen = (node, visited) => {
+      if (node.generation != null) return node.generation
+      if (visited.has(node.id)) return 0
       visited.add(node.id)
+      const pId = node.fatherId || node.motherId
+      if (!pId || !nodeById.has(pId)) return 1
+      return calcGen(nodeById.get(pId), visited) + 1
+    }
+    data.forEach(n => { n.generation = calcGen(n, new Set()) })
 
-      while (queue.length > 0) {
-        const currentId = queue.shift()
-        const currentNode = data.find(n => n.id === currentId)
-        if (currentNode) group.push(currentNode)
+    // 子女映射: parentId -> [childNodes]
+    const childrenMap = new Map()
+    for (const n of data) {
+      const pId = n.fatherId || n.motherId
+      if (pId && nodeById.has(pId)) {
+        if (!childrenMap.has(pId)) childrenMap.set(pId, [])
+        childrenMap.get(pId).push(n)
+      }
+    }
 
-        for (const neighborId of (spouseAdj.get(currentId) || [])) {
-          if (!visited.has(neighborId)) {
-            visited.add(neighborId)
-            queue.push(neighborId)
+    // 配偶映射: nodeId -> [spouseNodes]（避免重复边）
+    const spouseOf = new Map()
+    for (const n of data) {
+      if (!n.spouseIds || n.spouseIds.length === 0) continue
+      for (const sid of n.spouseIds) {
+        if (!nodeById.has(sid)) continue
+        const key = n.id < sid ? `${n.id}-${sid}` : `${sid}-${n.id}`
+        if (!spouseOf.has(key)) {
+          spouseOf.set(key, [n.id, sid])
+        }
+      }
+    }
+
+    // 配偶邻接表
+    const spouseAdj = new Map()
+    for (const [a, b] of spouseOf.values()) {
+      if (!spouseAdj.has(a)) spouseAdj.set(a, [])
+      if (!spouseAdj.has(b)) spouseAdj.set(b, [])
+      spouseAdj.get(a).push(b)
+      spouseAdj.get(b).push(a)
+    }
+
+    // ============================
+    // 2. 找根节点
+    // ============================
+    const existingIds = new Set(data.map(n => n.id))
+    const naturalRoots = data.filter(n => !n.fatherId && !n.motherId)
+    const orphans = data.filter(n => {
+      if (!n.fatherId && !n.motherId) return false
+      const pId = n.fatherId || n.motherId
+      return pId && !existingIds.has(pId)
+    })
+    for (const o of orphans) { o.fatherId = null; o.motherId = null }
+    const allRoots = [...naturalRoots, ...orphans]
+
+    // ============================
+    // 3. 递归布局（自底向上）
+    // ============================
+    const visited = new Set()
+
+    /**
+     * 布局一个节点及其配偶组、所有后代。
+     * 返回：{ minX, maxX, nodes: [{id, x, y}] }
+     * 坐标相对于 0（调用方负责平移）
+     */
+    const layoutSubtree = (nodeId) => {
+      if (visited.has(nodeId)) return null
+      visited.add(nodeId)
+
+      const node = nodeById.get(nodeId)
+      if (!node) return null
+
+      // 找配偶组（BFS 全连通分量）
+      const spouseGroup = [node]
+      if (spouseAdj.has(nodeId)) {
+        const queue = [nodeId]
+        const spVisited = new Set([nodeId])
+        while (queue.length > 0) {
+          const cur = queue.shift()
+          for (const nb of (spouseAdj.get(cur) || [])) {
+            if (!spVisited.has(nb) && nodeById.has(nb)) {
+              spVisited.add(nb)
+              visited.add(nb)
+              spouseGroup.push(nodeById.get(nb))
+              queue.push(nb)
+            }
           }
         }
       }
 
-      if (group.length > 1) spouseGroups.push(group)
-    }
+      // 收集配偶组所有成员的子女（去重）
+      const allChildren = []
+      const childIds = new Set()
+      for (const m of spouseGroup) {
+        const kids = childrenMap.get(m.id) || []
+        for (const c of kids) {
+          if (!visited.has(c.id) && !childIds.has(c.id)) {
+            childIds.add(c.id)
+            allChildren.push(c)
+          }
+        }
+      }
 
-    // 调整配偶位置：组内所有配偶同一水平线（y 取组内最高世代即最小 y 值），横向排列
-    for (const group of spouseGroups) {
-      // 按原始 x 坐标排序保持视觉顺序
-      group.sort((a, b) => a.x - b.x)
-      // 所有配偶对齐到同一 y（取原始 y 的最小值，即最高世代的位置）
-      const unifiedY = Math.min(...group.map(n => n.y))
-      // 以组成员原始 x 的中点为基准居中排列
-      const origCenterX = group.reduce((sum, n) => sum + n.x, 0) / group.length
-      const totalWidth = (group.length - 1) * SPOUSE_GAP
-      const startX = origCenterX - totalWidth / 2
+      // 按出生日期排序（同父同母按长子→幼子）
+      allChildren.sort((a, b) => {
+        const da = a.birthDate || '9999-99-99'
+        const db = b.birthDate || '9999-99-99'
+        return da.localeCompare(db)
+      })
 
-      for (let i = 0; i < group.length; i++) {
-        group[i].x = startX + i * SPOUSE_GAP
-        group[i].y = unifiedY
+      // 递归布局每个子女的子树
+      const childSubtrees = []
+      for (const c of allChildren) {
+        const sub = layoutSubtree(c.id)
+        if (sub) childSubtrees.push(sub)
+      }
+
+      // 将子女子树从左到右排列（相对坐标，起始于 0）
+      let childCursorX = 0
+      for (const sub of childSubtrees) {
+        const shiftX = childCursorX - sub.minX
+        for (const sn of sub.nodes) {
+          sn.x += shiftX
+        }
+        childCursorX = sub.maxX + shiftX + SUBTREE_GAP
+      }
+
+      // 计算子女总范围的 X 中心
+      let childrenCenterX = 0
+      if (childSubtrees.length > 0) {
+        const firstChild = childSubtrees[0]
+        const lastChild = childSubtrees[childSubtrees.length - 1]
+        childrenCenterX = (firstChild.minX + (firstChild.minX - firstChild.minX) + lastChild.maxX + (lastChild.maxX - lastChild.maxX)) / 2
+        // 简化：取所有子节点 x 的中点
+        const allChildX = []
+        for (const sub of childSubtrees) {
+          for (const sn of sub.nodes) {
+            if (sn.x != null) allChildX.push(sn.x)
+          }
+        }
+        if (allChildX.length > 0) {
+          childrenCenterX = (Math.min(...allChildX) + Math.max(...allChildX)) / 2
+        }
+      }
+
+      // 配偶组水平排列，居中于子女上方
+      const gen = node.generation || 1
+      const y = TOP_MARGIN + (gen - 1) * VERTICAL_GAP
+      const spWidth = (spouseGroup.length - 1) * SPOUSE_GAP
+      const spStartX = childrenCenterX - spWidth / 2
+
+      for (let i = 0; i < spouseGroup.length; i++) {
+        spouseGroup[i].x = spStartX + i * SPOUSE_GAP
+        spouseGroup[i].y = y
+      }
+
+      // 收集本子树所有节点
+      const allNodes = []
+      for (const m of spouseGroup) {
+        allNodes.push({ id: m.id, x: m.x, y: m.y })
+      }
+      for (const sub of childSubtrees) {
+        for (const sn of sub.nodes) {
+          allNodes.push(sn)
+        }
+      }
+
+      // 计算本子树的 X 包围盒
+      const allXs = allNodes.map(n => n.x)
+      return {
+        minX: Math.min(...allXs),
+        maxX: Math.max(...allXs),
+        nodes: allNodes
       }
     }
 
-    // === 生成连接线 ===
+    // ============================
+    // 4. 布局所有根节点树
+    // ============================
+    // 按世代排序（先处理低世代），同世代按出生日期
+    allRoots.sort((a, b) => {
+      if (a.generation !== b.generation) return a.generation - b.generation
+      return (a.birthDate || '').localeCompare(b.birthDate || '')
+    })
+
+    const rootSubtrees = []
+    for (const root of allRoots) {
+      if (visited.has(root.id)) continue
+      const sub = layoutSubtree(root.id)
+      if (sub) rootSubtrees.push(sub)
+    }
+
+    // 将各根节点树从左到右排列
+    let rootCursorX = 0
+    for (const sub of rootSubtrees) {
+      const shiftX = rootCursorX - sub.minX
+      for (const sn of sub.nodes) {
+        const dn = nodeById.get(sn.id)
+        if (dn) {
+          dn.x = sn.x + shiftX
+          dn.y = sn.y
+        }
+      }
+      rootCursorX = sub.maxX + shiftX + ROOT_GAP
+    }
+
+    // ============================
+    // 5. 水平居中
+    // ============================
+    const allX = data.map(n => n.x).filter(x => x != null)
+    if (allX.length > 0) {
+      const minX = Math.min(...allX)
+      const maxX = Math.max(...allX)
+      const treeWidth = maxX - minX
+      const centerX = svgWidth.value / 2
+      data.forEach(n => {
+        if (n.x != null) n.x = n.x - minX - treeWidth / 2 + centerX
+      })
+    }
+
+    // ============================
+    // 6. 生成连接线
+    // ============================
     const newLinks = []
 
     // 亲子连线
-    root.links()
-      .filter(l => l.source.id !== '__virtual_root__')
-      .forEach(l => {
-        const src = data.find(n => n.id === l.source.id)
-        const tgt = data.find(n => n.id === l.target.id)
-        if (!src || !tgt || src.x == null || tgt.x == null) return
-        newLinks.push({
-          id: `parent-${l.source.id}-${l.target.id}`,
-          path: bezierCurve(src.x, src.y - NODE_H, tgt.x, tgt.y + NODE_H),
-          isSpouse: false
-        })
+    for (const n of data) {
+      const pId = n.fatherId || n.motherId
+      if (!pId) continue
+      const parent = nodeById.get(pId)
+      if (!parent || parent.x == null || n.x == null) continue
+      newLinks.push({
+        id: `parent-${pId}-${n.id}`,
+        path: bezierCurve(parent.x, parent.y + NODE_HW, n.x, n.y - NODE_HW),
+        isSpouse: false
       })
 
-    // 配偶连线
-    for (const group of spouseGroups) {
-      for (let i = 0; i < group.length - 1; i++) {
-        const a = group[i], b = group[i + 1]
-        newLinks.push({
-          id: `spouse-${a.id}-${b.id}`,
-          path: bezierCurve(a.x + 32, a.y, b.x - 32, b.y),
-          isSpouse: true
-        })
+      // 如另一家长也存在且非同一配偶组，也画连线
+      const otherPid = n.fatherId && n.motherId
+        ? (pId === n.fatherId ? n.motherId : n.fatherId)
+        : null
+      if (otherPid && otherPid !== pId) {
+        const otherParent = nodeById.get(otherPid)
+        if (otherParent && otherParent.x != null) {
+          newLinks.push({
+            id: `parent-${otherPid}-${n.id}`,
+            path: bezierCurve(otherParent.x, otherParent.y + NODE_HW, n.x, n.y - NODE_HW),
+            isSpouse: false
+          })
+        }
       }
+    }
+
+    // 配偶连线（避免重复）
+    const spouseLinkSet = new Set()
+    for (const [aId, bId] of spouseOf.values()) {
+      const a = nodeById.get(aId), b = nodeById.get(bId)
+      if (!a || !b || a.x == null || b.x == null) continue
+      const key = aId < bId ? `${aId}-${bId}` : `${bId}-${aId}`
+      if (spouseLinkSet.has(key)) continue
+      spouseLinkSet.add(key)
+      newLinks.push({
+        id: `spouse-${key}`,
+        path: bezierCurve(a.x + NODE_HW, a.y, b.x - NODE_HW, b.y),
+        isSpouse: true
+      })
     }
 
     linkData.value = newLinks
 
-    // === 计算初始平移使视图居中 ===
-    const allX = data.map(n => n.x).filter(x => x != null)
+    // ============================
+    // 7. 初始视图居中
+    // ============================
     const allY = data.map(n => n.y).filter(y => y != null)
-    const bboxMinX = Math.min(...allX), bboxMaxX = Math.max(...allX)
-    const bboxMinY = Math.min(...allY), bboxMaxY = Math.max(...allY)
-    const bboxCX = (bboxMinX + bboxMaxX) / 2
-    const bboxCY = (bboxMinY + bboxMaxY) / 2
-    transform.value = {
-      x: svgWidth.value / 2 - bboxCX,
-      y: svgHeight.value / 2 - bboxCY
+    if (allX.length > 0 && allY.length > 0) {
+      const bboxMinX = Math.min(...allX)
+      const bboxMaxX = Math.max(...allX)
+      const bboxMinY = Math.min(...allY)
+      const bboxMaxY = Math.max(...allY)
+      const bboxCX = (bboxMinX + bboxMaxX) / 2
+      const bboxCY = (bboxMinY + bboxMaxY) / 2
+      transform.value = {
+        x: svgWidth.value / 2 - bboxCX,
+        y: svgHeight.value / 2 - bboxCY
+      }
+    } else {
+      transform.value = { x: 0, y: 0 }
     }
-
-    transform.value = { x: 0, y: 0 }
   } catch (err) {
     console.error('renderTree 异常:', err)
   } finally {
