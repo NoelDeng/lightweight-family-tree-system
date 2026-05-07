@@ -178,7 +178,8 @@ const renderTree = () => {
     const SUBTREE_GAP = 80     // 兄弟子树间水平间距
     const ROOT_GAP = 80        // 独立根节点树间水平间距
     const TOP_MARGIN = 60      // 顶部边距
-    const NODE_HW = 32         // 节点半宽（rect 64/2）
+    const NODE_HW = 32         // 节点水平半宽（rect width 64/2）
+    const NODE_HH = 18         // 节点垂直半高（rect height 36/2）
 
     // ============================
     // 1. 构建索引
@@ -411,7 +412,7 @@ const renderTree = () => {
     // ============================
     const newLinks = []
 
-    // 亲子连线
+    // 亲子连线：从父节点底部 → 子节点顶部
     for (const n of data) {
       const pId = n.fatherId || n.motherId
       if (!pId) continue
@@ -419,7 +420,7 @@ const renderTree = () => {
       if (!parent || parent.x == null || n.x == null) continue
       newLinks.push({
         id: `parent-${pId}-${n.id}`,
-        path: bezierCurve(parent.x, parent.y + NODE_HW, n.x, n.y - NODE_HW),
+        path: bezierCurve(parent.x, parent.y + NODE_HH, n.x, n.y - NODE_HH),
         isSpouse: false
       })
 
@@ -432,7 +433,7 @@ const renderTree = () => {
         if (otherParent && otherParent.x != null) {
           newLinks.push({
             id: `parent-${otherPid}-${n.id}`,
-            path: bezierCurve(otherParent.x, otherParent.y + NODE_HW, n.x, n.y - NODE_HW),
+            path: bezierCurve(otherParent.x, otherParent.y + NODE_HH, n.x, n.y - NODE_HH),
             isSpouse: false
           })
         }
