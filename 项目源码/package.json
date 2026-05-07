@@ -1,0 +1,31 @@
+{
+  "name": "family-tree-vue3",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Lightweight Family Tree System",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "test:debug": "playwright test --debug"
+  },
+  "dependencies": {
+    "d3": "^7.8.5",
+    "pinia": "^2.1.7",
+    "vue": "^3.3.8",
+    "vue-virtual-scroller": "^2.0.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@vitejs/plugin-vue": "^4.5.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "serve": "^14.2.6",
+    "tailwindcss": "^3.3.5",
+    "vite": "^4.5.14"
+  }
+}

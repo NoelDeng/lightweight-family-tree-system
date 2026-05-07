@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重置数据库</title>
+</head>
+<body>
+    <h1>重置数据库</h1>
+    <button onclick="resetDatabase()">重置数据库</button>
+    <div id="result"></div>
+
+    <script>
+        const dbName = 'FamilyTreeDB';
+        const version = 1;
+
+        async function resetDatabase() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '正在重置数据库...';
+
+            try {
+                // 1. 删除旧数据库
+                await new Promise((resolve, reject) => {
+                    const request = indexedDB.deleteDatabase(dbName);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                    request.onblocked = () => {
+                        console.log('数据库被占用，稍后重试...');
+                        setTimeout(resolve, 1000);
+                    };
+                });
+
+                resultDiv.innerHTML = '<p style="color: orange;">✓ 旧数据库已删除，正在创建新数据库...</p>';
+
+                // 2. 创建新数据库
+                await new Promise((resolve, reject) => {
+                    const request = indexedDB.open(dbName, version);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+
+                        // 创建family节点表
+                        if (!db.objectStoreNames.contains('familyNodes')) {
+                            db.createObjectStore('familyNodes', { keyPath: 'id' });
+                        }
+
+                        // 创建设置表
+                        if (!db.objectStoreNames.contains('settings')) {
+                            db.createObjectStore('settings', { keyPath: 'key' });
+                        }
+                    };
+                });
+
+                resultDiv.innerHTML = '<p style="color: green;">✓ 数据库已完全重置！</p>';
+                console.log('数据库已完全重置');
+
+                // 3. 提示刷新页面
+                setTimeout(() => {
+                    resultDiv.innerHTML += '<br><p style="color: #3b82f6;">请刷新浏览器页面</p>';
+                }, 1500);
+
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">✗ 重置失败：${error.message}</p>`;
+                console.error('重置数据库失败：', error);
+            }
+        }
+    </script>
+</body>
+</html>

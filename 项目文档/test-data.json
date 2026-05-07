@@ -1,0 +1,511 @@
+[
+  {
+    "id": "1",
+    "name": "沈华浩",
+    "gender": "male",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "2",
+      "3"
+    ],
+    "birthDate": "1951-05-24",
+    "bio": "家族始祖",
+    "generation": 0
+  },
+  {
+    "id": "2",
+    "name": "何萍雪",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "1"
+    ],
+    "birthDate": "1947-08-25",
+    "bio": "沈华浩的配偶",
+    "generation": 0
+  },
+  {
+    "id": "3",
+    "name": "邹慧秀",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "1"
+    ],
+    "birthDate": "1953-12-10",
+    "bio": "沈华浩的配偶",
+    "generation": 0
+  },
+  {
+    "id": "4",
+    "name": "周伟磊",
+    "gender": "male",
+    "fatherId": "1",
+    "motherId": "3",
+    "spouseIds": [
+      "5",
+      "6"
+    ],
+    "birthDate": "1972-06-17",
+    "bio": "沈华浩与邹慧秀的儿子",
+    "generation": 1
+  },
+  {
+    "id": "5",
+    "name": "罗霞",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "4"
+    ],
+    "birthDate": "1972-12-15",
+    "bio": "周伟磊的配偶",
+    "generation": 1
+  },
+  {
+    "id": "6",
+    "name": "陈芳",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "4"
+    ],
+    "birthDate": "1976-03-17",
+    "bio": "周伟磊的配偶",
+    "generation": 1
+  },
+  {
+    "id": "7",
+    "name": "周毅浩",
+    "gender": "male",
+    "fatherId": "4",
+    "motherId": "6",
+    "spouseIds": [
+      "8"
+    ],
+    "birthDate": "1997-05-12",
+    "bio": "周伟磊与陈芳的儿子",
+    "generation": 2
+  },
+  {
+    "id": "8",
+    "name": "梁云",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "7"
+    ],
+    "birthDate": "2000-12-04",
+    "bio": "周毅浩的配偶",
+    "generation": 2
+  },
+  {
+    "id": "9",
+    "name": "冯涛涛",
+    "gender": "male",
+    "fatherId": "7",
+    "motherId": "8",
+    "spouseIds": [
+      "10",
+      "11"
+    ],
+    "birthDate": "2024-08-22",
+    "bio": "周毅浩与梁云的儿子",
+    "generation": 3
+  },
+  {
+    "id": "10",
+    "name": "唐丽慧",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "9"
+    ],
+    "birthDate": "2024-05-10",
+    "bio": "冯涛涛的配偶",
+    "generation": 3
+  },
+  {
+    "id": "11",
+    "name": "何娟雪",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "9"
+    ],
+    "birthDate": "2023-05-04",
+    "bio": "冯涛涛的配偶",
+    "generation": 3
+  },
+  {
+    "id": "12",
+    "name": "赵伟",
+    "gender": "male",
+    "fatherId": "9",
+    "motherId": "10",
+    "spouseIds": [],
+    "birthDate": "2051-03-13",
+    "bio": "冯涛涛与唐丽慧的儿子",
+    "generation": 4
+  },
+  {
+    "id": "13",
+    "name": "钱峰",
+    "gender": "male",
+    "fatherId": "9",
+    "motherId": "11",
+    "spouseIds": [],
+    "birthDate": "2050-05-16",
+    "bio": "冯涛涛与何娟雪的儿子",
+    "generation": 4
+  },
+  {
+    "id": "14",
+    "name": "何霞",
+    "gender": "female",
+    "fatherId": "9",
+    "motherId": "11",
+    "spouseIds": [],
+    "birthDate": "2050-12-10",
+    "bio": "冯涛涛与何娟雪的女儿",
+    "generation": 4
+  },
+  {
+    "id": "15",
+    "name": "冯静云",
+    "gender": "female",
+    "fatherId": "7",
+    "motherId": "8",
+    "spouseIds": [],
+    "birthDate": "2024-12-28",
+    "bio": "周毅浩与梁云的女儿",
+    "generation": 3
+  },
+  {
+    "id": "16",
+    "name": "苏敏慧",
+    "gender": "female",
+    "fatherId": "4",
+    "motherId": "5",
+    "spouseIds": [],
+    "birthDate": "2002-06-21",
+    "bio": "周伟磊与罗霞的女儿",
+    "generation": 2
+  },
+  {
+    "id": "17",
+    "name": "沈毅涛",
+    "gender": "male",
+    "fatherId": "1",
+    "motherId": "2",
+    "spouseIds": [
+      "18"
+    ],
+    "birthDate": "1975-01-12",
+    "bio": "沈华浩与何萍雪的儿子",
+    "generation": 1
+  },
+  {
+    "id": "18",
+    "name": "邓霞静",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "17"
+    ],
+    "birthDate": "1977-06-10",
+    "bio": "沈毅涛的配偶",
+    "generation": 1
+  },
+  {
+    "id": "19",
+    "name": "陈辉磊",
+    "gender": "male",
+    "fatherId": "17",
+    "motherId": "18",
+    "spouseIds": [
+      "20",
+      "21"
+    ],
+    "birthDate": "1997-12-21",
+    "bio": "沈毅涛与邓霞静的儿子",
+    "generation": 2
+  },
+  {
+    "id": "20",
+    "name": "何云梅",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "19"
+    ],
+    "birthDate": "2000-08-26",
+    "bio": "陈辉磊的配偶",
+    "generation": 2
+  },
+  {
+    "id": "21",
+    "name": "邹燕娟",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "19"
+    ],
+    "birthDate": "1999-02-09",
+    "bio": "陈辉磊的配偶",
+    "generation": 2
+  },
+  {
+    "id": "22",
+    "name": "韩磊涛",
+    "gender": "male",
+    "fatherId": "19",
+    "motherId": "21",
+    "spouseIds": [
+      "23",
+      "24"
+    ],
+    "birthDate": "2027-08-26",
+    "bio": "陈辉磊与邹燕娟的儿子",
+    "generation": 3
+  },
+  {
+    "id": "23",
+    "name": "邓花玲",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "22"
+    ],
+    "birthDate": "2022-01-23",
+    "bio": "韩磊涛的配偶",
+    "generation": 3
+  },
+  {
+    "id": "24",
+    "name": "吴芳",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "22"
+    ],
+    "birthDate": "2025-07-22",
+    "bio": "韩磊涛的配偶",
+    "generation": 3
+  },
+  {
+    "id": "25",
+    "name": "赵杰浩",
+    "gender": "male",
+    "fatherId": "22",
+    "motherId": "24",
+    "spouseIds": [],
+    "birthDate": "2052-03-24",
+    "bio": "韩磊涛与吴芳的儿子",
+    "generation": 4
+  },
+  {
+    "id": "26",
+    "name": "王杰杰",
+    "gender": "male",
+    "fatherId": "22",
+    "motherId": "23",
+    "spouseIds": [],
+    "birthDate": "2053-06-17",
+    "bio": "韩磊涛与邓花玲的儿子",
+    "generation": 4
+  },
+  {
+    "id": "27",
+    "name": "谢玲",
+    "gender": "female",
+    "fatherId": "19",
+    "motherId": "20",
+    "spouseIds": [],
+    "birthDate": "2027-12-23",
+    "bio": "陈辉磊与何云梅的女儿",
+    "generation": 3
+  },
+  {
+    "id": "28",
+    "name": "张辉浩",
+    "gender": "male",
+    "fatherId": "17",
+    "motherId": "18",
+    "spouseIds": [
+      "29"
+    ],
+    "birthDate": "1998-07-16",
+    "bio": "沈毅涛与邓霞静的儿子",
+    "generation": 2
+  },
+  {
+    "id": "29",
+    "name": "冯芳",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "28"
+    ],
+    "birthDate": "2001-10-06",
+    "bio": "张辉浩的配偶",
+    "generation": 2
+  },
+  {
+    "id": "30",
+    "name": "郑浩建",
+    "gender": "male",
+    "fatherId": "28",
+    "motherId": "29",
+    "spouseIds": [
+      "31",
+      "32"
+    ],
+    "birthDate": "2026-05-24",
+    "bio": "张辉浩与冯芳的儿子",
+    "generation": 3
+  },
+  {
+    "id": "31",
+    "name": "吴红",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "30"
+    ],
+    "birthDate": "2028-11-26",
+    "bio": "郑浩建的配偶",
+    "generation": 3
+  },
+  {
+    "id": "32",
+    "name": "谢琴梅",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "30"
+    ],
+    "birthDate": "2025-08-15",
+    "bio": "郑浩建的配偶",
+    "generation": 3
+  },
+  {
+    "id": "33",
+    "name": "陈浩文",
+    "gender": "male",
+    "fatherId": "30",
+    "motherId": "31",
+    "spouseIds": [],
+    "birthDate": "2051-09-22",
+    "bio": "郑浩建与吴红的儿子",
+    "generation": 4
+  },
+  {
+    "id": "34",
+    "name": "陈毅伟",
+    "gender": "male",
+    "fatherId": "30",
+    "motherId": "32",
+    "spouseIds": [],
+    "birthDate": "2052-03-10",
+    "bio": "郑浩建与谢琴梅的儿子",
+    "generation": 4
+  },
+  {
+    "id": "35",
+    "name": "韩燕玲",
+    "gender": "female",
+    "fatherId": "28",
+    "motherId": "29",
+    "spouseIds": [],
+    "birthDate": "2026-04-13",
+    "bio": "张辉浩与冯芳的女儿",
+    "generation": 3
+  },
+  {
+    "id": "36",
+    "name": "杨毅",
+    "gender": "male",
+    "fatherId": "28",
+    "motherId": "29",
+    "spouseIds": [
+      "37"
+    ],
+    "birthDate": "2028-10-16",
+    "bio": "张辉浩与冯芳的儿子",
+    "generation": 3
+  },
+  {
+    "id": "37",
+    "name": "陈静",
+    "gender": "female",
+    "fatherId": null,
+    "motherId": null,
+    "spouseIds": [
+      "36"
+    ],
+    "birthDate": "2022-11-10",
+    "bio": "杨毅的配偶",
+    "generation": 3
+  },
+  {
+    "id": "38",
+    "name": "吴文",
+    "gender": "male",
+    "fatherId": "36",
+    "motherId": "37",
+    "spouseIds": [],
+    "birthDate": "2047-10-16",
+    "bio": "杨毅与陈静的儿子",
+    "generation": 4
+  },
+  {
+    "id": "39",
+    "name": "吴毅国",
+    "gender": "male",
+    "fatherId": "36",
+    "motherId": "37",
+    "spouseIds": [],
+    "birthDate": "2048-12-26",
+    "bio": "杨毅与陈静的儿子",
+    "generation": 4
+  },
+  {
+    "id": "40",
+    "name": "郑龙",
+    "gender": "male",
+    "fatherId": "36",
+    "motherId": "37",
+    "spouseIds": [],
+    "birthDate": "2047-05-11",
+    "bio": "杨毅与陈静的儿子",
+    "generation": 4
+  },
+  {
+    "id": "41",
+    "name": "冯梅秀",
+    "gender": "female",
+    "fatherId": "1",
+    "motherId": "3",
+    "spouseIds": [],
+    "birthDate": "1974-05-23",
+    "bio": "沈华浩与邹慧秀的女儿",
+    "generation": 1
+  }
+]
